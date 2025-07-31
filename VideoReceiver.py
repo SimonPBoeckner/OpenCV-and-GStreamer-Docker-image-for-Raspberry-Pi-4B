@@ -18,31 +18,39 @@ class VideoReceiver(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
+        # Create a video display area (just a QWidget)
         self.video_frame = QFrame(self)
         self.video_frame.setStyleSheet("background-color: black;")
         layout.addWidget(self.video_frame)
 
+        # GStreamer pipeline with glimagesink
         pipeline_desc = (
             'udpsrc port=5000 caps="application/x-rtp, media=video, encoding-name=H264, payload=96" ! '
             'rtph264depay ! avdec_h264 ! videoconvert ! glimagesink name=vsync sync=false'
         )
         self.pipeline = Gst.parse_launch(pipeline_desc)
 
+        # Get the video sink
         self.videosink = self.pipeline.get_by_name("vsync")
 
+        # Embed GStreamer video into the QWidget
         self.embed_video_sink()
 
+        # Setup bus
         self.bus = self.pipeline.get_bus()
         self.bus.add_signal_watch()
         self.bus.connect("message", self.on_gst_message)
 
+        # Start playing
         self.pipeline.set_state(Gst.State.PLAYING)
 
+        # Keep the Qt event loop polling
         self.timer = QTimer()
         self.timer.timeout.connect(lambda: None)
         self.timer.start(100)
 
     def embed_video_sink(self):
+        # Get native window ID
         window_id = int(self.video_frame.winId())
         if window_id:
             self.videosink.set_window_handle(window_id)
