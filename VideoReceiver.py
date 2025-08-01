@@ -47,7 +47,7 @@ class VideoReceiver(QWidget):
         # Keep the Qt event loop polling
         self.timer = QTimer()
         self.timer.timeout.connect(lambda: None)
-        self.timer.start(100)
+        self.timer.start(16)
 
     def embed_video_sink(self):
         # Get native window ID
@@ -59,7 +59,7 @@ class VideoReceiver(QWidget):
         t = message.type
         if t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
-            print("GStreamer Erro:", err, debug)
+            print("GStreamer Error:", err, debug)
             self.pipeline.set_state(Gst.State.NULL)
         elif t == Gst.MessageType.EOS:
             print("End of Stream")
